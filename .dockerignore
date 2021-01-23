@@ -1,0 +1,9 @@
+.git
+.gitignore
+*.md
+
+Dockerfile
+Makefile
+TODO
+docker-compose.yml
+monitoring-configuration-service
