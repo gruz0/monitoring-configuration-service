@@ -1,23 +1,13 @@
 package plugin
 
-type Plugin struct {
-	ID   int
-	Name string
+import (
+	"gorm.io/gorm"
+)
+
+type Repository struct {
+	db *gorm.DB
 }
 
-type Repository struct{}
-
-func New(id int, name string) *Plugin {
-	return &Plugin{
-		ID:   id,
-		Name: name,
-	}
-}
-
-func (r *Repository) FindAll() []*Plugin {
-	return []*Plugin{}
-}
-
-func NewPluginRepository() *Repository {
-	return &Repository{}
+func NewPluginRepository(db *gorm.DB) *Repository {
+	return &Repository{db: db}
 }

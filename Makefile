@@ -2,6 +2,7 @@ export ROOT=$(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 export DEBUG=true
 export APP=monitoring-configuration-service
 export LDFLAGS="-w -s"
+export MONITORING_CONFIGURATION_DB_URL='host=localhost user=app password=password dbname=app_development sslmode=disable TimeZone=UTC'
 
 all: build test
 
@@ -12,7 +13,7 @@ build-static:
 	CGO_ENABLED=0 go build -race -v -o $(APP) -a -installsuffix cgo -ldflags $(LDFLAGS) .
 
 run:
-	go run -race .
+	go run -race . -db.url=$(MONITORING_CONFIGURATION_DB_URL)
 
 test:
 	go test -v -race ./...

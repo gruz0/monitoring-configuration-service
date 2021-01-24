@@ -13,9 +13,16 @@ import (
 	"github.com/gruz0/monitoring-configuration-service/internal/persistence"
 )
 
+const (
+	defaultConfigurationDatabaseURL = "host=localhost user=app password=password dbname=app_development sslmode=disable TimeZone=UTC"
+)
+
 func main() {
 	var (
-		httpAddr = flag.String("http.addr", ":8080", "HTTP listen address")
+		dbURL = envString("MONITORING_CONFIGURATION_DB_URL", defaultConfigurationDatabaseURL)
+
+		httpAddr                 = flag.String("http.addr", ":8080", "HTTP listen address")
+		configurationDatabaseURL = flag.String("db.url", dbURL, "Database connection string")
 	)
 
 	flag.Parse()
@@ -27,12 +34,32 @@ func main() {
 		logger = log.With(logger, "caller", log.DefaultCaller)
 	}
 
-	var (
-		customers = persistence.NewCustomerRepository()
-	)
+	persistenceLogger := log.With(logger, "component", "persistence")
+
+	db, err := persistence.New(*configurationDatabaseURL)
+
+	if err != nil {
+		_ = persistenceLogger.Log(
+			"method", "connect_to_database",
+			"error", "Unable to connect to a database",
+			"description", err.Error(),
+		)
+
+		os.Exit(1)
+	}
+
+	if err := persistence.AutoMigrate(db.DB); err != nil {
+		_ = persistenceLogger.Log(
+			"method", "migrate_database",
+			"error", "Error while migrating a database",
+			"description", err.Error(),
+		)
+
+		os.Exit(1)
+	}
 
 	var cs configuration.Service
-	cs = configuration.NewService(*customers)
+	cs = configuration.NewService(*db.Sites)
 	cs = configuration.NewLoggingService(log.With(logger, "component", "configuration"), cs)
 
 	httpLogger := log.With(logger, "component", "http")
@@ -71,4 +98,14 @@ func accessControl(h http.Handler) http.Handler {
 
 		h.ServeHTTP(w, r)
 	})
+}
+
+func envString(env, fallback string) string {
+	e := os.Getenv(env)
+
+	if e == "" {
+		return fallback
+	}
+
+	return e
 }

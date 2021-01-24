@@ -1,8 +1,7 @@
 package configuration
 
 import (
-	"github.com/gruz0/monitoring-configuration-service/internal/customer"
-	"github.com/gruz0/monitoring-configuration-service/internal/plugin"
+	"github.com/gruz0/monitoring-configuration-service/internal/model"
 	"github.com/gruz0/monitoring-configuration-service/internal/site"
 )
 
@@ -11,23 +10,58 @@ type Service interface {
 }
 
 type service struct {
-	customers customer.Repository
+	sites site.Repository
 }
 
 func (s *service) Configurations() []Configuration {
-	result := make([]Configuration, 0)
+	sites, err := s.sites.FindAllVerifiedDomainsWithPlugins()
 
-	for _, c := range s.customers.FindAllActive() {
-		result = append(result, build(c))
+	if err != nil {
+		return nil
 	}
 
-	return result
+	return []Configuration{
+		{
+			Domains: buildDomains(sites),
+		},
+	}
 }
 
-func NewService(customers customer.Repository) Service {
+func NewService(sites site.Repository) Service {
 	return &service{
-		customers: customers,
+		sites: sites,
 	}
+}
+
+func buildDomains(sites []model.Site) []Domain {
+	domains := make([]Domain, 0)
+
+	for _, site := range sites {
+		if len(site.Plugins) == 0 {
+			continue
+		}
+
+		domains = append(
+			domains,
+			Domain{
+				SiteID:  site.ID,
+				Name:    site.DomainName,
+				Plugins: buildPlugins(site.Plugins),
+			},
+		)
+	}
+
+	return domains
+}
+
+func buildPlugins(plugins []model.Plugin) []Plugin {
+	p := make([]Plugin, len(plugins))
+
+	for i, plugin := range plugins {
+		p[i] = Plugin{ID: plugin.ID, Name: plugin.Name}
+	}
+
+	return p
 }
 
 type Configuration struct {
@@ -35,7 +69,7 @@ type Configuration struct {
 }
 
 type Domain struct {
-	ID      int      `json:"id"`
+	SiteID  int      `json:"site_id"`
 	Name    string   `json:"name"`
 	Plugins []Plugin `json:"plugins"`
 }
@@ -43,35 +77,4 @@ type Domain struct {
 type Plugin struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
-}
-
-func build(c *customer.Customer) Configuration {
-	domains := make([]Domain, 0)
-
-	for _, s := range c.Sites {
-		plugins := make([]Plugin, 0)
-
-		for _, p := range s.Plugins {
-			plugins = append(plugins, buildPlugin(p))
-		}
-
-		domains = append(domains, buildDomain(s, plugins))
-	}
-
-	return Configuration{Domains: domains}
-}
-
-func buildDomain(s *site.Site, plugins []Plugin) Domain {
-	return Domain{
-		ID:      s.Domain.ID,
-		Name:    s.Domain.Name,
-		Plugins: plugins,
-	}
-}
-
-func buildPlugin(p *plugin.Plugin) Plugin {
-	return Plugin{
-		ID:   p.ID,
-		Name: p.Name,
-	}
 }

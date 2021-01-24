@@ -4,4 +4,14 @@ services:
   app:
     build: .
     ports:
-      - 8080:8080
+      - 127.0.0.1:8080:8080
+  db:
+    image: postgres:12
+    environment:
+      POSTGRES_USER: "app"
+      POSTGRES_DB: "app_development"
+      POSTGRES_PASSWORD: "password"
+    volumes:
+      - .data:/var/lib/postgresql/data
+    ports:
+      - 127.0.0.1:5432:5432

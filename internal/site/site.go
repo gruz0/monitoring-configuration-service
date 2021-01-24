@@ -1,34 +1,26 @@
 package site
 
 import (
-	"github.com/gruz0/monitoring-configuration-service/internal/domain"
-	"github.com/gruz0/monitoring-configuration-service/internal/plugin"
+	"github.com/gruz0/monitoring-configuration-service/internal/model"
+	"gorm.io/gorm"
 )
 
-type Site struct {
-	ID      int
-	Domain  *domain.Domain
-	Plugins []*plugin.Plugin
+type Repository struct {
+	db *gorm.DB
 }
 
-type Repository struct{}
+func (r *Repository) FindAllVerifiedDomainsWithPlugins() ([]model.Site, error) {
+	var sites []model.Site
 
-func New(id int, domain *domain.Domain, plugins []*plugin.Plugin) *Site {
-	return &Site{
-		ID:      id,
-		Domain:  domain,
-		Plugins: plugins,
+	err := r.db.Where(&model.Site{OwnershipVerified: true}).Preload("Plugins").Find(&sites).Error
+
+	if err != nil {
+		return nil, err
 	}
+
+	return sites, nil
 }
 
-func (r *Repository) FindAll() []*Site {
-	return []*Site{}
-}
-
-func (r *Repository) FindAllByCustomerID(_ int) []*Site {
-	return []*Site{}
-}
-
-func NewSiteRepository() *Repository {
-	return &Repository{}
+func NewSiteRepository(db *gorm.DB) *Repository {
+	return &Repository{db: db}
 }
