@@ -5,8 +5,10 @@ import "gorm.io/gorm"
 type Plugin struct {
 	gorm.Model
 
-	ID   int
-	Name string `gorm:"uniqueIndex;not null;"`
+	ID        int
+	Namespace string `gorm:"index;not null;"`
+	Name      string `gorm:"uniqueIndex;not null;"`
 
-	Sites []Site `gorm:"many2many:site_plugins;constraint:OnDelete:CASCADE;"`
+	Title       string `gorm:"not null;"`
+	Description string `gorm:"not null;"`
 }

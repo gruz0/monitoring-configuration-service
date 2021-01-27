@@ -27,6 +27,13 @@ func New(dsn string) (*Persistence, error) {
 		return nil, err
 	}
 
+	// NOTE: https://gorm.io/docs/many_to_many.html#Customize-JoinTable
+	err = db.SetupJoinTable(&model.Site{}, "Plugins", &model.SitePlugin{})
+
+	if err != nil {
+		return nil, err
+	}
+
 	return &Persistence{
 		DB:        db,
 		Customers: newCustomerRepository(db),
@@ -52,5 +59,6 @@ func AutoMigrate(db *gorm.DB) error {
 		&model.Customer{},
 		&model.Site{},
 		&model.Plugin{},
+		&model.SitePlugin{},
 	)
 }

@@ -12,6 +12,7 @@ type Repository struct {
 func (r *Repository) FindAllVerifiedDomainsWithPlugins() ([]model.Site, error) {
 	var sites []model.Site
 
+	// FIXME: This should be rewritten with .Joins
 	err := r.db.Where(&model.Site{OwnershipVerified: true}).Preload("Plugins").Find(&sites).Error
 
 	if err != nil {
