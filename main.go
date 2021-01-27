@@ -58,6 +58,18 @@ func main() {
 		os.Exit(1)
 	}
 
+	if envString("MONITORING_CONFIGURATION_DB_SEED", "0") == "1" {
+		if err := db.Seed(); err != nil {
+			_ = persistenceLogger.Log(
+				"method", "seed_database",
+				"error", "Error while seeding a database",
+				"description", err.Error(),
+			)
+
+			os.Exit(1)
+		}
+	}
+
 	var cs configuration.Service
 	cs = configuration.NewService(*db.Sites)
 	cs = configuration.NewLoggingService(log.With(logger, "component", "configuration"), cs)
