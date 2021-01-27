@@ -11,5 +11,5 @@ Get the configuration:
 
 ```bash
 $ curl http://localhost:8080/configurations
-{"configuration":[{"domains":[{"site_id":1,"name":"domain1.tld","plugins":[{"id":1,"name":"http.http_status200"}]}]}]}
+{"configuration":[{"domains":[{"site_id":1,"name":"domain1.tld","plugins":[{"id":1,"namespace": "http","name":"http_status200"}]}]}]}
 ```

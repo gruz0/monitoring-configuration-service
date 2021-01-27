@@ -58,23 +58,12 @@ func buildPlugins(plugins []model.Plugin) []Plugin {
 	p := make([]Plugin, len(plugins))
 
 	for i, plugin := range plugins {
-		p[i] = Plugin{ID: plugin.ID, Name: plugin.Name}
+		p[i] = Plugin{
+			ID:        plugin.ID,
+			Namespace: plugin.Namespace,
+			Name:      plugin.Name,
+		}
 	}
 
 	return p
-}
-
-type Configuration struct {
-	Domains []Domain `json:"domains"`
-}
-
-type Domain struct {
-	SiteID  int      `json:"site_id"`
-	Name    string   `json:"name"`
-	Plugins []Plugin `json:"plugins"`
-}
-
-type Plugin struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
 }
