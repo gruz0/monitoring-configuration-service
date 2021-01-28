@@ -41,7 +41,7 @@ func main() {
 	if err != nil {
 		_ = persistenceLogger.Log(
 			"method", "connect_to_database",
-			"error", "Unable to connect to a database",
+			"err", "Unable to connect to a database",
 			"description", err.Error(),
 		)
 
@@ -51,7 +51,7 @@ func main() {
 	if err := persistence.AutoMigrate(db.DB); err != nil {
 		_ = persistenceLogger.Log(
 			"method", "migrate_database",
-			"error", "Error while migrating a database",
+			"err", "Error while migrating a database",
 			"description", err.Error(),
 		)
 
@@ -62,7 +62,7 @@ func main() {
 		if err := db.Seed(); err != nil {
 			_ = persistenceLogger.Log(
 				"method", "seed_database",
-				"error", "Error while seeding a database",
+				"err", "Error while seeding a database",
 				"description", err.Error(),
 			)
 
@@ -70,9 +70,11 @@ func main() {
 		}
 	}
 
+	configurationServiceLogger := log.With(logger, "component", "configuration")
+
 	var cs configuration.Service
-	cs = configuration.NewService(*db.Sites)
-	cs = configuration.NewLoggingService(log.With(logger, "component", "configuration"), cs)
+	cs = configuration.NewService(*db)
+	cs = configuration.NewLoggingService(configurationServiceLogger, cs)
 
 	httpLogger := log.With(logger, "component", "http")
 

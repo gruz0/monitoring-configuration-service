@@ -15,7 +15,7 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s *loggingService) Configurations() []Configuration {
+func (s *loggingService) Configurations() (Configuration, error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "list_configurations",

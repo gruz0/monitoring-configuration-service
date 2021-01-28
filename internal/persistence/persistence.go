@@ -5,6 +5,7 @@ import (
 	"github.com/gruz0/monitoring-configuration-service/internal/model"
 	"github.com/gruz0/monitoring-configuration-service/internal/plugin"
 	"github.com/gruz0/monitoring-configuration-service/internal/site"
+	"gorm.io/datatypes"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -99,14 +100,18 @@ func (p *Persistence) Seed() error {
 		// WordPress
 	}
 
-	p.DB.Create(&plugins)
+	if err := p.DB.Create(&plugins).Error; err != nil {
+		return err
+	}
 
 	var customers = []model.Customer{
 		{Email: "first@domain1.tld"},
 		{Email: "second@domain2.tld"},
 	}
 
-	p.DB.Create(&customers)
+	if err := p.DB.Create(&customers).Error; err != nil {
+		return err
+	}
 
 	var sites = []model.Site{
 		{DomainName: "domain1.tld", OwnershipVerified: true, CustomerID: customers[0].ID},
@@ -114,21 +119,55 @@ func (p *Persistence) Seed() error {
 		{DomainName: "domain3.tld", OwnershipVerified: false, CustomerID: customers[0].ID},
 	}
 
-	p.DB.Create(&sites)
-
-	var sitePlugins = []model.SitePlugin{
-		{SiteID: sites[0].ID, PluginID: plugins[0].ID},
-		{SiteID: sites[0].ID, PluginID: plugins[1].ID},
-		{SiteID: sites[0].ID, PluginID: plugins[2].ID},
-		{SiteID: sites[1].ID, PluginID: plugins[3].ID},
-		{SiteID: sites[1].ID, PluginID: plugins[4].ID},
-		{SiteID: sites[1].ID, PluginID: plugins[5].ID},
-		{SiteID: sites[2].ID, PluginID: plugins[6].ID},
-		{SiteID: sites[2].ID, PluginID: plugins[7].ID},
-		{SiteID: sites[2].ID, PluginID: plugins[8].ID},
+	if err := p.DB.Create(&sites).Error; err != nil {
+		return err
 	}
 
-	p.DB.Create(&sitePlugins)
+	var sitePlugins = []model.SitePlugin{
+		{SiteID: sites[0].ID, PluginID: plugins[0].ID, Settings: datatypes.JSON([]byte(`{"resource":"/resource1","value":"content1"}`))}, // content.contains_string
+		{SiteID: sites[0].ID, PluginID: plugins[1].ID, Settings: datatypes.JSON([]byte(`{"resource":"/resource2","value":"content2"}`))}, // content.does_not_contain_string
+		{SiteID: sites[0].ID, PluginID: plugins[2].ID},  // content.valid_json
+		{SiteID: sites[1].ID, PluginID: plugins[3].ID},  // domain.dns_a_records
+		{SiteID: sites[1].ID, PluginID: plugins[4].ID},  // domain.domain_expiration
+		{SiteID: sites[1].ID, PluginID: plugins[5].ID},  // domain.ssl_certificate_expiration
+		{SiteID: sites[2].ID, PluginID: plugins[6].ID},  // files.directory_listing_disabled
+		{SiteID: sites[2].ID, PluginID: plugins[7].ID},  // files.file_does_not_exist
+		{SiteID: sites[2].ID, PluginID: plugins[8].ID},  // files.file_exists
+		{SiteID: sites[0].ID, PluginID: plugins[9].ID},  // files.robots_txt
+		{SiteID: sites[0].ID, PluginID: plugins[10].ID}, // files.sitemap_xml
+		{SiteID: sites[0].ID, PluginID: plugins[11].ID}, // http.http_status200
+		{SiteID: sites[0].ID, PluginID: plugins[12].ID}, // http.http_to_https_redirect
+		{SiteID: sites[0].ID, PluginID: plugins[13].ID}, // http.non_existent_url_returns404
+		{SiteID: sites[0].ID, PluginID: plugins[14].ID, Settings: datatypes.JSON([]byte(`{"resource":"/resource","value":301}`))}, // http.valid_http_status_code
+		{SiteID: sites[0].ID, PluginID: plugins[15].ID}, // http.www_to_non_www_redirect
+		{SiteID: sites[0].ID, PluginID: plugins[16].ID}, // other.database_connection_issue
+		{SiteID: sites[0].ID, PluginID: plugins[17].ID}, // ownership.dns_a_records
+		{SiteID: sites[0].ID, PluginID: plugins[18].ID}, // ownership.file_verification
+	}
+
+	if err := p.DB.Create(&sitePlugins).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *Persistence) DeleteAll() error {
+	if err := p.DB.Exec("DELETE FROM site_plugins;").Error; err != nil {
+		return err
+	}
+
+	if err := p.DB.Exec("DELETE FROM plugins;").Error; err != nil {
+		return err
+	}
+
+	if err := p.DB.Exec("DELETE FROM sites;").Error; err != nil {
+		return err
+	}
+
+	if err := p.DB.Exec("DELETE FROM customers;").Error; err != nil {
+		return err
+	}
 
 	return nil
 }
