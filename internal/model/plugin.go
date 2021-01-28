@@ -1,6 +1,9 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/datatypes"
+	"gorm.io/gorm"
+)
 
 type Plugin struct {
 	gorm.Model
@@ -11,4 +14,6 @@ type Plugin struct {
 
 	Title       string `gorm:"not null;"`
 	Description string `gorm:"not null;"`
+
+	Settings datatypes.JSON
 }

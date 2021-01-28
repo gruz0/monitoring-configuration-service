@@ -1,69 +1,130 @@
 package configuration
 
 import (
-	"github.com/gruz0/monitoring-configuration-service/internal/model"
-	"github.com/gruz0/monitoring-configuration-service/internal/site"
+	"github.com/gruz0/monitoring-configuration-service/internal/persistence"
+	"gorm.io/datatypes"
 )
 
 type Service interface {
-	Configurations() []Configuration
+	Configurations() (Configuration, error)
 }
 
 type service struct {
-	sites site.Repository
+	persistence persistence.Persistence
 }
 
-func (s *service) Configurations() []Configuration {
-	sites, err := s.sites.FindAllVerifiedDomainsWithPlugins()
+func (s *service) Configurations() (Configuration, error) {
+	var result Configuration
+
+	query := "SELECT s.id AS site_id, s.domain_name, p.id AS plugin_id, p.namespace, p.name AS plugin_name, sp.settings " +
+		"FROM sites s " +
+		"INNER JOIN site_plugins sp ON sp.site_id = s.id " +
+		"INNER JOIN plugins p ON sp.plugin_id = p.id " +
+		"WHERE s.ownership_verified = true AND sp.enabled = true " +
+		"ORDER BY s.id ASC, s.domain_name ASC, p.namespace ASC, p.name ASC"
+
+	rows, err := s.persistence.DB.Raw(query).Rows()
+
+	defer rows.Close()
 
 	if err != nil {
-		return nil
+		return result, err
 	}
 
-	return []Configuration{
-		{
-			Domains: buildDomains(sites),
-		},
-	}
-}
+	var domains []Domain
 
-func NewService(sites site.Repository) Service {
-	return &service{
-		sites: sites,
-	}
-}
-
-func buildDomains(sites []model.Site) []Domain {
-	domains := make([]Domain, 0)
-
-	for _, site := range sites {
-		if len(site.Plugins) == 0 {
-			continue
-		}
-
-		domains = append(
-			domains,
-			Domain{
-				SiteID:  site.ID,
-				Name:    site.DomainName,
-				Plugins: buildPlugins(site.Plugins),
-			},
+	for rows.Next() {
+		var (
+			siteId          int
+			domainName      string
+			pluginId        int
+			pluginNamespace string
+			pluginName      string
+			settings        datatypes.JSON
 		)
-	}
 
-	return domains
-}
+		rows.Scan(&siteId, &domainName, &pluginId, &pluginNamespace, &pluginName, &settings)
 
-func buildPlugins(plugins []model.Plugin) []Plugin {
-	p := make([]Plugin, len(plugins))
+		var domain *Domain
+		domainFound := false
+		domainIdx := -1
 
-	for i, plugin := range plugins {
-		p[i] = Plugin{
-			ID:        plugin.ID,
-			Namespace: plugin.Namespace,
-			Name:      plugin.Name,
+		for idx, d := range domains {
+			if d.SiteID == siteId {
+				domain = &d
+				domainFound = true
+				domainIdx = idx
+
+				break
+			}
+		}
+
+		if !domainFound {
+			domain = &Domain{SiteID: siteId, Name: domainName, Plugins: []Plugin{}}
+		}
+
+		plugin := Plugin{ID: pluginId, Namespace: pluginNamespace, Name: pluginName, Settings: settings}
+
+		domain.Plugins = append(domain.Plugins, plugin)
+
+		if domainIdx >= 0 {
+			domains[domainIdx] = *domain
+		} else {
+			domains = append(domains, *domain)
 		}
 	}
 
-	return p
+	result = Configuration{
+		Domains: domains,
+	}
+
+	return result, nil
 }
+
+// func NewService(sites site.Repository) Service {
+func NewService(p persistence.Persistence) Service {
+	return &service{
+		persistence: p,
+	}
+}
+
+// func buildDomains(sites []model.Site) []Domain {
+// 	domains := make([]Domain, 0)
+//
+// 	for _, site := range sites {
+// 		if len(site.Plugins) == 0 {
+// 			continue
+// 		}
+//
+// 		stdlog.Printf("Plugin: %+v", site.Plugins)
+//
+// 		domains = append(
+// 			domains,
+// 			Domain{
+// 				SiteID:  site.ID,
+// 				Name:    site.DomainName,
+// 				Plugins: buildPlugins(site.Plugins),
+// 			},
+// 		)
+// 	}
+//
+// 	return domains
+// }
+//
+// func buildPlugins(plugins []model.Plugin) []Plugin {
+// 	p := make([]Plugin, len(plugins))
+//
+// 	for i, plugin := range plugins {
+// 		// stdlog.Printf("Plugin: %+v", plugin)
+// 		// stdlog.Printf("Settings: %+v", plugin.Settings)
+//
+// 		p[i] = Plugin{
+// 			ID:        plugin.ID,
+// 			Namespace: plugin.Namespace,
+// 			Name:      plugin.Name,
+// 			Settings:  plugin.Settings,
+// 		}
+// 	}
+//
+// 	return p
+// }
