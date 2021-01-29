@@ -1,6 +1,7 @@
 package configuration
 
 import (
+	"os"
 	"testing"
 
 	"github.com/gruz0/monitoring-configuration-service/internal/persistence"
@@ -8,7 +9,11 @@ import (
 )
 
 func TestConfigurations(t *testing.T) {
-	configurationDatabaseURL := "host=localhost user=app password=password dbname=app_development sslmode=disable TimeZone=UTC"
+	configurationDatabaseURL := os.Getenv("MONITORING_CONFIGURATION_DB_URL")
+
+	if configurationDatabaseURL == "" {
+		t.Fatal("You need to set MONITORING_CONFIGURATION_DB_URL environment variable")
+	}
 
 	db, err := persistence.New(configurationDatabaseURL)
 
