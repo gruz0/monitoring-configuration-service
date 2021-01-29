@@ -13,7 +13,7 @@ jobs:
           POSTGRES_USER: app
           POSTGRES_PASSWORD: password
           POSTGRES_DB: app_test
-        ports: ['5432:5432']
+        ports: ['5433:5432']
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -32,6 +32,4 @@ jobs:
         run: go build -v -race ./...
 
       - name: Run tests
-        env:
-          MONITORING_CONFIGURATION_DB_URL: host=localhost user=app password=password dbname=app_test sslmode=disable TimeZone=UTC
-        run: go test -v -race ./...
+        run: make test
