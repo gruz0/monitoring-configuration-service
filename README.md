@@ -158,6 +158,14 @@ rm -rf .data
 
 ## Tests
 
+Run a test database:
+
+```bash
+docker-compose up test_db -d
+```
+
+Then run tests:
+
 ```bash
 make test
 ```
