@@ -1,5 +1,7 @@
 # Monitoring Configuration Service
 
+![Tests](https://github.com/gruz0/monitoring-configuration-service/workflows/Tests/badge.svg?branch=master)
+
 Start database:
 
 ```bash
