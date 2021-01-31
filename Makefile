@@ -16,6 +16,7 @@ run:
 	go run -race . -db.url=$(MONITORING_CONFIGURATION_DB_URL)
 
 test:
+	go clean -testcache
 	MONITORING_CONFIGURATION_DB_URL='postgres://app:password@localhost:5433/app_test?TimeZone=UTC&sslmode=disable' \
 	go test -v -race ./...
 

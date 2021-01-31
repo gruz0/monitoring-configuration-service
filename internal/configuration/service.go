@@ -1,6 +1,7 @@
 package configuration
 
 import (
+	"github.com/google/uuid"
 	"github.com/gruz0/monitoring-configuration-service/internal/persistence"
 	"gorm.io/datatypes"
 )
@@ -21,7 +22,7 @@ func (s *service) Configurations() (Configuration, error) {
 		"INNER JOIN site_plugins sp ON sp.site_id = s.id " +
 		"INNER JOIN plugins p ON sp.plugin_id = p.id " +
 		"WHERE s.ownership_verified = true AND sp.enabled = true " +
-		"ORDER BY s.id ASC, s.domain_name ASC, p.namespace ASC, p.name ASC"
+		"ORDER BY s.domain_name ASC, p.namespace ASC, p.name ASC"
 
 	rows, err := s.persistence.DB.Raw(query).Rows()
 
@@ -35,9 +36,9 @@ func (s *service) Configurations() (Configuration, error) {
 
 	for rows.Next() {
 		var (
-			siteId          int
+			siteId          uuid.UUID
 			domainName      string
-			pluginId        int
+			pluginId        uuid.UUID
 			pluginNamespace string
 			pluginName      string
 			settings        datatypes.JSON
