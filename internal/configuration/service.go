@@ -81,50 +81,8 @@ func (s *service) Configurations() (Configuration, error) {
 	return result, nil
 }
 
-// func NewService(sites site.Repository) Service {
 func NewService(p persistence.Persistence) Service {
 	return &service{
 		persistence: p,
 	}
 }
-
-// func buildDomains(sites []model.Site) []Domain {
-// 	domains := make([]Domain, 0)
-//
-// 	for _, site := range sites {
-// 		if len(site.Plugins) == 0 {
-// 			continue
-// 		}
-//
-// 		stdlog.Printf("Plugin: %+v", site.Plugins)
-//
-// 		domains = append(
-// 			domains,
-// 			Domain{
-// 				SiteID:  site.ID,
-// 				Name:    site.DomainName,
-// 				Plugins: buildPlugins(site.Plugins),
-// 			},
-// 		)
-// 	}
-//
-// 	return domains
-// }
-//
-// func buildPlugins(plugins []model.Plugin) []Plugin {
-// 	p := make([]Plugin, len(plugins))
-//
-// 	for i, plugin := range plugins {
-// 		// stdlog.Printf("Plugin: %+v", plugin)
-// 		// stdlog.Printf("Settings: %+v", plugin.Settings)
-//
-// 		p[i] = Plugin{
-// 			ID:        plugin.ID,
-// 			Namespace: plugin.Namespace,
-// 			Name:      plugin.Name,
-// 			Settings:  plugin.Settings,
-// 		}
-// 	}
-//
-// 	return p
-// }
