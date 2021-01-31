@@ -7,4 +7,5 @@ Dockerfile
 Makefile
 TODO
 docker-compose.yml
+scripts/postgres-enable-uuid-extension.sh
 monitoring-configuration-service

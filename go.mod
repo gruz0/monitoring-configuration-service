@@ -4,6 +4,7 @@ go 1.15
 
 require (
 	github.com/go-kit/kit v0.10.0
+	github.com/google/uuid v1.0.0
 	github.com/gorilla/mux v1.8.0
 	github.com/jackc/pgproto3/v2 v2.0.7 // indirect
 	github.com/stretchr/testify v1.5.1

@@ -21,6 +21,11 @@ jobs:
           --health-retries 5
 
     steps:
+      - name: Enable PostgreSQL Extensions
+        run: psql --host=localhost --port=5433 -U app app_test -tc 'CREATE EXTENSION "uuid-ossp";'
+        env:
+          PGPASSWORD: password
+
       - uses: actions/checkout@v2
 
       - name: Set up Go
