@@ -1,2 +1,6 @@
 .data
 monitoring-configuration-service
+
+# local env files
+.env*
+!.env.example
