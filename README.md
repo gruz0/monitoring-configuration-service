@@ -5,19 +5,19 @@
 Start database:
 
 ```bash
-docker-compose up db
+make docker-start-database
 ```
 
 Start web-server:
 
 ```bash
-$ make run
+make run
 ```
 
 Get the configuration:
 
 ```bash
-$ curl http://localhost:8080/configurations | jq
+curl http://localhost:8080/configurations | jq
 ```
 
 ```json
@@ -163,7 +163,7 @@ rm -rf .data
 Run a test database:
 
 ```bash
-docker-compose up test_db -d
+make test-start-database
 ```
 
 Then run tests:

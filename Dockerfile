@@ -1,7 +1,7 @@
 #
 # 1. Build Container
 #
-FROM golang:1.15.6 AS build
+FROM golang:1.19.2 AS build
 
 ENV GO111MODULE=on \
     GOOS=linux \
@@ -29,7 +29,7 @@ RUN go install -installsuffix cgo -ldflags="-w -s" && \
 #
 # 2. Runtime Container
 #
-FROM alpine:3.13
+FROM alpine:3.16.2
 
 LABEL maintainer="Alexander Kadyrov <gruz0.mail@gmail.com>"
 
@@ -37,9 +37,9 @@ ENV TZ=UTC \
     PATH="/app:${PATH}"
 
 RUN apk add --update --no-cache \
-    tzdata=2020f-r0 \
-    ca-certificates=20191127-r5 \
-    bash=5.1.0-r0 \
+    tzdata=2022c-r0 \
+    ca-certificates=20220614-r0 \
+    bash=5.1.16-r2 \
     && \
     cp --remove-destination /usr/share/zoneinfo/${TZ} /etc/localtime && \
     echo "${TZ}" > /etc/timezone

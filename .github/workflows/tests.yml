@@ -3,7 +3,7 @@ name: Tests
 on: [push, pull_request]
 
 jobs:
-  test:
+  tests:
     runs-on: ubuntu-latest
 
     services:
@@ -31,10 +31,13 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.15
+          go-version: 1.19
 
       - name: Build
-        run: go build -v -race ./...
+        run: make build
 
-      - name: Run tests
+      - name: Test
         run: make test
+
+      - name: Build Docker Image
+        run: make docker-build
